@@ -27818,8 +27818,7 @@
         "description": "Plugin trigger type",
         "enum": [
           "AssetCreate",
-          "AssetMetadataExtraction",
-          "PersonRecognized"
+          "AssetMetadataExtraction"
         ],
         "type": "string"
       },
@@ -27846,8 +27845,7 @@
       "WorkflowType": {
         "description": "Workflow type",
         "enum": [
-          "AssetV1",
-          "AssetPersonV1"
+          "AssetV1"
         ],
         "type": "string"
       },
