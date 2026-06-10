@@ -18974,6 +18974,10 @@
             "description": "Whether to receive email notifications for album updates",
             "type": "boolean"
           },
+          "diskHealthAlert": {
+            "description": "Whether to receive email notifications for disk health status changes",
+            "type": "boolean"
+          },
           "enabled": {
             "description": "Whether email notifications are enabled",
             "type": "boolean"
@@ -18982,6 +18986,7 @@
         "required": [
           "albumInvite",
           "albumUpdate",
+          "diskHealthAlert",
           "enabled"
         ],
         "type": "object"
@@ -18994,6 +18999,10 @@
           },
           "albumUpdate": {
             "description": "Whether to receive email notifications for album updates",
+            "type": "boolean"
+          },
+          "diskHealthAlert": {
+            "description": "Whether to receive email notifications for disk health status changes",
             "type": "boolean"
           },
           "enabled": {
@@ -20429,6 +20438,7 @@
           "SystemMessage",
           "AlbumInvite",
           "AlbumUpdate",
+          "DiskHealthAlert",
           "Custom"
         ],
         "type": "string"
