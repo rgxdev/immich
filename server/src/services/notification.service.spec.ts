@@ -1,6 +1,6 @@
 import { defaults, SystemConfig } from 'src/config';
 import { SystemConfigDto } from 'src/dtos/system-config.dto';
-import { AssetFileType, JobName, JobStatus, UserMetadataKey } from 'src/enum';
+import { AssetFileType, JobName, JobStatus, NotificationLevel, NotificationType, UserMetadataKey } from 'src/enum';
 import { NotificationService } from 'src/services/notification.service';
 import { INotifyAlbumUpdateJob } from 'src/types';
 import { AlbumFactory } from 'test/factories/album.factory';
@@ -559,6 +559,106 @@ describe(NotificationService.name, () => {
 
       await expect(sut.handleSendEmail({ html: '', subject: '', text: '', to: '' })).resolves.toBe(JobStatus.Success);
       expect(mocks.email.sendEmail).toHaveBeenCalledWith(expect.objectContaining({ replyTo: 'demo@immich.app' }));
+    });
+  });
+
+  describe('onDiskHealthAlert', () => {
+    const changedDevice = { name: 'Primary', devicePath: '/dev/sda1', status: 'warning', previousStatus: 'healthy' };
+    const recoveredDevice = { name: 'Primary', devicePath: '/dev/sda1', status: 'healthy', previousStatus: 'critical' };
+    const criticalDevice = { name: 'Primary', devicePath: '/dev/sda1', status: 'critical', previousStatus: 'warning' };
+
+    it('should skip when no admin user exists', async () => {
+      mocks.user.getAdmin.mockResolvedValue(void 0);
+
+      await sut.onDiskHealthAlert({ devices: [changedDevice] });
+
+      expect(mocks.notification.create).not.toHaveBeenCalled();
+      expect(mocks.websocket.clientSend).not.toHaveBeenCalled();
+    });
+
+    it('should create a warning in-app notification and send it via websocket', async () => {
+      mocks.user.getAdmin.mockResolvedValue(userStub.admin);
+      mocks.notification.create.mockResolvedValue(notificationStub.albumEvent);
+
+      await sut.onDiskHealthAlert({ devices: [changedDevice] });
+
+      expect(mocks.notification.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: userStub.admin.id,
+          type: NotificationType.DiskHealthAlert,
+          level: NotificationLevel.Warning,
+        }),
+      );
+      expect(mocks.websocket.clientSend).toHaveBeenCalledWith('on_notification', userStub.admin.id, expect.anything());
+    });
+
+    it('should create an error in-app notification for a critical status', async () => {
+      mocks.user.getAdmin.mockResolvedValue(userStub.admin);
+      mocks.notification.create.mockResolvedValue(notificationStub.albumEvent);
+
+      await sut.onDiskHealthAlert({ devices: [criticalDevice] });
+
+      expect(mocks.notification.create).toHaveBeenCalledWith(
+        expect.objectContaining({ level: NotificationLevel.Error }),
+      );
+    });
+
+    it('should create a success in-app notification on recovery to healthy', async () => {
+      mocks.user.getAdmin.mockResolvedValue(userStub.admin);
+      mocks.notification.create.mockResolvedValue(notificationStub.albumEvent);
+
+      await sut.onDiskHealthAlert({ devices: [recoveredDevice] });
+
+      expect(mocks.notification.create).toHaveBeenCalledWith(
+        expect.objectContaining({ level: NotificationLevel.Success }),
+      );
+    });
+
+    it('should skip email when admin has diskHealthAlert notifications disabled', async () => {
+      mocks.user.getAdmin.mockResolvedValue({
+        ...userStub.admin,
+        metadata: [
+          { key: UserMetadataKey.Preferences, value: { emailNotifications: { enabled: true, diskHealthAlert: false } } },
+        ],
+      });
+      mocks.notification.create.mockResolvedValue(notificationStub.albumEvent);
+
+      await sut.onDiskHealthAlert({ devices: [changedDevice] });
+
+      expect(mocks.job.queue).not.toHaveBeenCalled();
+    });
+
+    it('should skip email when master email notifications are disabled', async () => {
+      mocks.user.getAdmin.mockResolvedValue({
+        ...userStub.admin,
+        metadata: [
+          { key: UserMetadataKey.Preferences, value: { emailNotifications: { enabled: false, diskHealthAlert: true } } },
+        ],
+      });
+      mocks.notification.create.mockResolvedValue(notificationStub.albumEvent);
+
+      await sut.onDiskHealthAlert({ devices: [changedDevice] });
+
+      expect(mocks.job.queue).not.toHaveBeenCalled();
+    });
+
+    it('should queue a SendMail job when diskHealthAlert email is enabled', async () => {
+      mocks.user.getAdmin.mockResolvedValue({
+        ...userStub.admin,
+        metadata: [
+          { key: UserMetadataKey.Preferences, value: { emailNotifications: { enabled: true, diskHealthAlert: true } } },
+        ],
+      });
+      mocks.notification.create.mockResolvedValue(notificationStub.albumEvent);
+
+      await sut.onDiskHealthAlert({ devices: [changedDevice] });
+
+      expect(mocks.job.queue).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: JobName.SendMail,
+          data: expect.objectContaining({ subject: expect.stringContaining('Disk Health Alert') }),
+        }),
+      );
     });
   });
 });
