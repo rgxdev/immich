@@ -78,6 +78,9 @@
           inputType={SettingInputFieldType.NUMBER}
           label={$t('admin.disk_health_check_interval')}
           description={$t('admin.disk_health_check_interval_description')}
+          min={5}
+          max={1440}
+          required={true}
           bind:value={configToEdit.diskMonitoring.checkIntervalMinutes}
           disabled={disabled || !configToEdit.diskMonitoring.enabled}
           isEdited={configToEdit.diskMonitoring.checkIntervalMinutes !== config.diskMonitoring.checkIntervalMinutes}
@@ -87,6 +90,9 @@
           inputType={SettingInputFieldType.NUMBER}
           label={$t('admin.disk_health_retention')}
           description={$t('admin.disk_health_retention_description')}
+          min={1}
+          max={365}
+          required={true}
           bind:value={configToEdit.diskMonitoring.retentionDays}
           disabled={disabled || !configToEdit.diskMonitoring.enabled}
           isEdited={configToEdit.diskMonitoring.retentionDays !== config.diskMonitoring.retentionDays}
