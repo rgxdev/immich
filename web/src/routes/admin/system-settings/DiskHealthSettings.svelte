@@ -150,7 +150,7 @@
                     disabled={disabled || !configToEdit.diskMonitoring.enabled}
                   />
 
-                  <div class="flex items-end justify-end">
+                  <div class="flex self-end justify-end pb-4">
                     <IconButton
                       aria-label={$t('admin.disk_health_remove_disk')}
                       onclick={() => configToEdit.diskMonitoring.devices.splice(i, 1)}
