@@ -130,5 +130,46 @@ describe(SystemConfigController.name, () => {
         );
       });
     });
+
+    describe('diskMonitoring', () => {
+      it('should accept a valid disk monitoring configuration', async () => {
+        const config = validConfig();
+        (config as typeof config & { diskMonitoring: unknown }).diskMonitoring = {
+          enabled: true,
+          checkIntervalMinutes: 15,
+          retentionDays: 7,
+          devices: [
+            {
+              name: 'Archive HDD',
+              devicePath: '/dev/sdb',
+              mountPath: '/mnt/archive',
+              notes: 'cold storage',
+            },
+          ],
+        };
+
+        const { status } = await request(ctx.getHttpServer()).put('/system-config').send(config);
+        expect(status).toBe(200);
+      });
+
+      it('should reject duplicate device paths', async () => {
+        const config = validConfig();
+        (config as typeof config & { diskMonitoring: unknown }).diskMonitoring = {
+          enabled: true,
+          checkIntervalMinutes: 15,
+          retentionDays: 7,
+          devices: [
+            { name: 'Disk A', devicePath: '/dev/sdb', mountPath: '/mnt/a', notes: '' },
+            { name: 'Disk B', devicePath: '/dev/sdb', mountPath: '/mnt/b', notes: '' },
+          ],
+        };
+
+        const { status, body } = await request(ctx.getHttpServer()).put('/system-config').send(config);
+        expect(status).toBe(400);
+        expect(body).toEqual(
+          errorDto.validationError([{ path: ['diskMonitoring', 'devices'], message: 'Device paths must be unique' }]),
+        );
+      });
+    });
   });
 });

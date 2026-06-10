@@ -2091,6 +2091,92 @@ export type ServerStorageResponseDto = {
     /** Used disk space in bytes */
     diskUseRaw: number;
 };
+export type DiskHealthStatus = "healthy" | "warning" | "critical" | "degraded" | "unknown";
+export type DiskMonitorDeviceDto = {
+    /** Device path */
+    devicePath: string;
+    /** Device protocol */
+    protocol: string | null;
+    /** Device type */
+    deviceType: string | null;
+    /** Available bytes */
+    availableBytes: number | null;
+    /** Health percentage */
+    healthPercent: number | null;
+    /** Whether this is the primary Immich storage disk */
+    isPrimary: boolean;
+    /** Detected issues */
+    issues: string[];
+    /** Last time the device was checked */
+    lastCheckedAt: string;
+    /** Mount path */
+    mountPath: string | null;
+    /** Display name */
+    name: string;
+    /** Power-on hours */
+    powerOnHours: number | null;
+    /** Disk health status */
+    status: DiskHealthStatus;
+    /** Current temperature in celsius */
+    temperatureCelsius: number | null;
+    /** Total bytes */
+    totalBytes: number | null;
+    /** Used bytes */
+    usedBytes: number | null;
+};
+export type DiskHealthSummaryDto = {
+    /** Critical devices */
+    critical: number;
+    /** Healthy devices */
+    healthy: number;
+    /** Total monitored devices */
+    total: number;
+    /** Unknown or degraded devices */
+    unknown: number;
+    /** Devices with warnings */
+    warning: number;
+};
+export type DiskHealthResponseDto = {
+    /** When the last response was generated */
+    checkedAt: string;
+    devices: DiskMonitorDeviceDto[];
+    summary: DiskHealthSummaryDto;
+};
+export type DiskHealthHistoryPointDto = {
+    /** Available bytes */
+    availableBytes: number | null;
+    /** Snapshot timestamp */
+    createdAt: string;
+    /** Health percentage */
+    healthPercent: number | null;
+    /** Disk health status */
+    status: DiskHealthStatus;
+    /** Current temperature in celsius */
+    temperatureCelsius: number | null;
+    /** Total bytes */
+    totalBytes: number | null;
+    /** Used bytes */
+    usedBytes: number | null;
+};
+export type DiskHealthHistoryDeviceDto = {
+    /** Device path */
+    devicePath: string;
+    /** Whether this is the primary Immich storage disk */
+    isPrimary: boolean;
+    /** Mount path */
+    mountPath: string | null;
+    /** Display name */
+    name: string;
+    /** Historic snapshots */
+    points: DiskHealthHistoryPointDto[];
+};
+export type DiskHealthHistoryResponseDto = {
+    /** History window start */
+    from: string;
+    items: DiskHealthHistoryDeviceDto[];
+    /** History window end */
+    to: string;
+};
 export type ServerVersionResponseDto = {
     /** Major version number */
     major: number;
@@ -2530,6 +2616,26 @@ export type SystemConfigServerDto = {
     /** Public users */
     publicUsers: boolean;
 };
+export type SystemConfigDiskMonitoringDeviceDto = {
+    /** Device path */
+    devicePath: string;
+    /** Mount path */
+    mountPath: string | null;
+    /** Display name */
+    name: string;
+    /** Notes */
+    notes: string | null;
+};
+export type SystemConfigDiskMonitoringDto = {
+    /** Check interval in minutes */
+    checkIntervalMinutes: number;
+    /** Additional monitored devices */
+    devices: SystemConfigDiskMonitoringDeviceDto[];
+    /** Enabled */
+    enabled: boolean;
+    /** History retention in days */
+    retentionDays: number;
+};
 export type SystemConfigStorageTemplateDto = {
     /** Enabled */
     enabled: boolean;
@@ -2579,6 +2685,7 @@ export type SystemConfigDto = {
     oauth: SystemConfigOAuthDto;
     passwordLogin: SystemConfigPasswordLoginDto;
     reverseGeocoding: SystemConfigReverseGeocodingDto;
+    diskMonitoring: SystemConfigDiskMonitoringDto;
     server: SystemConfigServerDto;
     storageTemplate: SystemConfigStorageTemplateDto;
     templates: SystemConfigTemplatesDto;
@@ -5875,6 +5982,46 @@ export function getStorage(opts?: Oazapfts.RequestOpts) {
         data: ServerStorageResponseDto;
     }>("/server/storage", {
         ...opts
+    }));
+}
+/**
+ * Get disk health
+ */
+export function getDiskHealth(opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: DiskHealthResponseDto;
+    }>("/server/disk-health", {
+        ...opts
+    }));
+}
+/**
+ * Get disk health history
+ */
+export function getDiskHealthHistory({
+    devicePath
+}: {
+    devicePath?: string;
+} = {}, opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 200;
+        data: DiskHealthHistoryResponseDto;
+    }>(`/server/disk-health/history${QS.query(QS.explode({
+        devicePath
+    }))}`, {
+        ...opts
+    }));
+}
+/**
+ * Run disk health check
+ */
+export function runDiskHealthCheck(opts?: Oazapfts.RequestOpts) {
+    return oazapfts.ok(oazapfts.fetchJson<{
+        status: 201;
+        data: DiskHealthResponseDto;
+    }>("/server/disk-health/check", {
+        ...opts,
+        method: "POST"
     }));
 }
 /**

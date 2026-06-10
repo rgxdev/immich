@@ -1,8 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Post, Put, Query } from '@nestjs/common';
 import { ApiNotFoundResponse, ApiTags } from '@nestjs/swagger';
 import { Endpoint, HistoryBuilder } from 'src/decorators';
 import { LicenseKeyDto, LicenseResponseDto } from 'src/dtos/license.dto';
 import {
+  DiskHealthHistoryQueryDto,
+  DiskHealthHistoryResponseDto,
+  DiskHealthResponseDto,
   ServerAboutResponseDto,
   ServerApkLinksDto,
   ServerConfigDto,
@@ -17,6 +20,7 @@ import {
 import { VersionCheckStateResponseDto } from 'src/dtos/system-metadata.dto';
 import { ApiTag, Permission } from 'src/enum';
 import { Authenticated } from 'src/middleware/auth.guard';
+import { DiskHealthService } from 'src/services/disk-health.service';
 import { ServerService } from 'src/services/server.service';
 import { SystemMetadataService } from 'src/services/system-metadata.service';
 import { VersionService } from 'src/services/version.service';
@@ -26,6 +30,7 @@ import { VersionService } from 'src/services/version.service';
 export class ServerController {
   constructor(
     private service: ServerService,
+    private diskHealthService: DiskHealthService,
     private systemMetadataService: SystemMetadataService,
     private versionService: VersionService,
   ) {}
@@ -61,6 +66,39 @@ export class ServerController {
   })
   getStorage(): Promise<ServerStorageResponseDto> {
     return this.service.getStorage();
+  }
+
+  @Get('disk-health')
+  @Authenticated({ permission: Permission.ServerStorage, admin: true })
+  @Endpoint({
+    summary: 'Get disk health',
+    description: 'Retrieve SMART-based health and capacity information for monitored disks.',
+    history: new HistoryBuilder().added('v3.0.0').alpha('v3.0.0'),
+  })
+  getDiskHealth(): Promise<DiskHealthResponseDto> {
+    return this.diskHealthService.getDiskHealth();
+  }
+
+  @Get('disk-health/history')
+  @Authenticated({ permission: Permission.ServerStorage, admin: true })
+  @Endpoint({
+    summary: 'Get disk health history',
+    description: 'Retrieve recent disk health history for monitored disks.',
+    history: new HistoryBuilder().added('v3.0.0').alpha('v3.0.0'),
+  })
+  getDiskHealthHistory(@Query() dto: DiskHealthHistoryQueryDto): Promise<DiskHealthHistoryResponseDto> {
+    return this.diskHealthService.getDiskHealthHistory(dto);
+  }
+
+  @Post('disk-health/check')
+  @Authenticated({ permission: Permission.ServerStorage, admin: true })
+  @Endpoint({
+    summary: 'Run disk health check',
+    description: 'Immediately run SMART-based disk health checks for monitored disks.',
+    history: new HistoryBuilder().added('v3.0.0').alpha('v3.0.0'),
+  })
+  runDiskHealthCheck(): Promise<DiskHealthResponseDto> {
+    return this.diskHealthService.runDiskHealthCheck();
   }
 
   @Get('ping')

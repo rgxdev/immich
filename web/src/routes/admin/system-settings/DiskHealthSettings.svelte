@@ -1,0 +1,179 @@
+<script lang="ts">
+  import SettingButtonsRow from '$lib/components/shared-components/settings/SystemConfigButtonRow.svelte';
+  import SettingInputField from '$lib/components/shared-components/settings/SettingInputField.svelte';
+  import SettingSwitch from '$lib/components/shared-components/settings/SettingSwitch.svelte';
+  import { SettingInputFieldType } from '$lib/constants';
+  import { featureFlagsManager } from '$lib/managers/feature-flags-manager.svelte';
+  import { systemConfigManager } from '$lib/managers/system-config-manager.svelte';
+  import { getDiskHealth, type DiskHealthResponseDto } from '@immich/sdk';
+  import { Button, IconButton, Text, toastManager } from '@immich/ui';
+  import { mdiPlus, mdiTrashCanOutline } from '@mdi/js';
+  import { onMount } from 'svelte';
+  import { fade } from 'svelte/transition';
+
+  const disabled = $derived(featureFlagsManager.value.configFile);
+  const config = $derived(systemConfigManager.value);
+  let configToEdit = $state(systemConfigManager.cloneValue());
+  let primaryDisk = $state<DiskHealthResponseDto['devices'][number] | null>(null);
+
+  for (const device of configToEdit.diskMonitoring.devices) {
+    device.mountPath ??= '';
+    device.notes ??= '';
+  }
+
+  onMount(async () => {
+    try {
+      const response = await getDiskHealth();
+      primaryDisk = response.devices.find((device) => device.isPrimary) ?? null;
+    } catch {
+      primaryDisk = null;
+    }
+  });
+
+  const addDevice = () => {
+    configToEdit.diskMonitoring.devices.push({
+      name: '',
+      devicePath: '',
+      mountPath: null,
+      notes: null,
+    });
+  };
+
+  const validate = async () => {
+    const seen = new Set<string>();
+    for (const device of configToEdit.diskMonitoring.devices) {
+      device.mountPath = device.mountPath?.trim() ? device.mountPath : null;
+      device.notes = device.notes?.trim() ? device.notes : null;
+
+      if (!device.name.trim() || !device.devicePath.trim()) {
+        toastManager.danger('Each monitored disk needs a name and a device path.');
+        return false;
+      }
+
+      if (seen.has(device.devicePath)) {
+        toastManager.danger('Device paths must be unique.');
+        return false;
+      }
+
+      seen.add(device.devicePath);
+    }
+
+    return true;
+  };
+</script>
+
+<div>
+  <div in:fade={{ duration: 500 }}>
+    <form autocomplete="off" onsubmit={(event) => event.preventDefault()}>
+      <div class="ms-4 mt-4 flex flex-col gap-4">
+        <SettingSwitch
+          title="Enable disk health monitoring"
+          subtitle="Run SMART-based health checks for the primary Immich storage disk and any additional configured devices."
+          {disabled}
+          bind:checked={configToEdit.diskMonitoring.enabled}
+        />
+
+        <SettingInputField
+          inputType={SettingInputFieldType.NUMBER}
+          label="Check interval (minutes)"
+          description="How often Immich should refresh SMART health and capacity snapshots."
+          bind:value={configToEdit.diskMonitoring.checkIntervalMinutes}
+          disabled={disabled || !configToEdit.diskMonitoring.enabled}
+          isEdited={configToEdit.diskMonitoring.checkIntervalMinutes !== config.diskMonitoring.checkIntervalMinutes}
+        />
+
+        <SettingInputField
+          inputType={SettingInputFieldType.NUMBER}
+          label="History retention (days)"
+          description="How long lightweight disk-health snapshots should be kept for trend charts."
+          bind:value={configToEdit.diskMonitoring.retentionDays}
+          disabled={disabled || !configToEdit.diskMonitoring.enabled}
+          isEdited={configToEdit.diskMonitoring.retentionDays !== config.diskMonitoring.retentionDays}
+        />
+
+        <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-immich-dark-border dark:bg-immich-dark-gray/40">
+          <Text fontWeight="medium">Primary disk</Text>
+          {#if primaryDisk}
+            <div class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+              <div><strong>{primaryDisk.name}</strong></div>
+              <div>{primaryDisk.devicePath}</div>
+              {#if primaryDisk.mountPath}
+                <div>{primaryDisk.mountPath}</div>
+              {/if}
+            </div>
+          {:else}
+            <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+              The primary Immich storage disk is detected automatically and cannot be edited here.
+            </div>
+          {/if}
+        </div>
+
+        <div class="rounded-2xl border border-gray-200 p-4 dark:border-immich-dark-border">
+          <div class="mb-3 flex items-center justify-between">
+            <Text fontWeight="medium">Additional disks</Text>
+            <Button
+              size="small"
+              shape="round"
+              leadingIcon={mdiPlus}
+              onclick={addDevice}
+              disabled={disabled || !configToEdit.diskMonitoring.enabled}
+            >
+              Add disk
+            </Button>
+          </div>
+
+          <div class="flex flex-col gap-4">
+            {#each configToEdit.diskMonitoring.devices as _, i (i)}
+              <div class="rounded-2xl border border-gray-200 p-4 dark:border-immich-dark-border">
+                <div class="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
+                  <SettingInputField
+                    inputType={SettingInputFieldType.TEXT}
+                    label="Display name"
+                    bind:value={configToEdit.diskMonitoring.devices[i].name}
+                    disabled={disabled || !configToEdit.diskMonitoring.enabled}
+                  />
+
+                  <SettingInputField
+                    inputType={SettingInputFieldType.TEXT}
+                    label="Device path"
+                    bind:value={configToEdit.diskMonitoring.devices[i].devicePath}
+                    disabled={disabled || !configToEdit.diskMonitoring.enabled}
+                  />
+
+                  <div class="flex items-end justify-end">
+                    <IconButton
+                      aria-label="Remove disk"
+                      onclick={() => configToEdit.diskMonitoring.devices.splice(i, 1)}
+                      icon={mdiTrashCanOutline}
+                      color="danger"
+                      disabled={disabled || !configToEdit.diskMonitoring.enabled}
+                    />
+                  </div>
+                </div>
+
+                <div class="mt-4 grid gap-4 md:grid-cols-2">
+                  <SettingInputField
+                    inputType={SettingInputFieldType.TEXT}
+                    label="Mount path"
+                    description="Optional path used for capacity statistics, for example /mnt/archive."
+                    bind:value={configToEdit.diskMonitoring.devices[i].mountPath}
+                    disabled={disabled || !configToEdit.diskMonitoring.enabled}
+                  />
+
+                  <SettingInputField
+                    inputType={SettingInputFieldType.TEXT}
+                    label="Notes"
+                    bind:value={configToEdit.diskMonitoring.devices[i].notes}
+                    disabled={disabled || !configToEdit.diskMonitoring.enabled}
+                  />
+                </div>
+              </div>
+            {/each}
+          </div>
+        </div>
+
+        <SettingButtonsRow bind:configToEdit keys={['diskMonitoring']} {disabled} onBeforeSave={validate} />
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import AuthSettings from './AuthSettings.svelte';
   import BackupSettings from './BackupSettings.svelte';
+  import DiskHealthSettings from './DiskHealthSettings.svelte';
   import FFmpegSettings from './FFmpegSettings.svelte';
   import ImageSettings from './ImageSettings.svelte';
   import JobSettings from './JobSettings.svelte';
@@ -31,6 +32,7 @@
     mdiBookshelf,
     mdiClockOutline,
     mdiDatabaseOutline,
+    mdiHarddisk,
     mdiFileDocumentOutline,
     mdiFolderOutline,
     mdiImageOutline,
@@ -74,6 +76,13 @@
       subtitle: $t('admin.backup_settings_description'),
       key: 'backup',
       icon: mdiBackupRestore,
+    },
+    {
+      component: DiskHealthSettings,
+      title: 'Disk Health Monitoring',
+      subtitle: 'Monitor SMART health, temperature, capacity, and trend history for the primary storage disk and extra devices.',
+      key: 'disk-health',
+      icon: mdiHarddisk,
     },
     {
       component: ImageSettings,

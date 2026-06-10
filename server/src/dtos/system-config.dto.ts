@@ -258,6 +258,39 @@ const SystemConfigServerSchema = z
   })
   .meta({ id: 'SystemConfigServerDto' });
 
+const SystemConfigDiskMonitoringDeviceSchema = z
+  .object({
+    name: z.string().min(1).describe('Display name'),
+    devicePath: z.string().min(1).describe('Device path'),
+    mountPath: z.string().min(1).nullable().describe('Mount path'),
+    notes: z.string().nullable().describe('Notes'),
+  })
+  .meta({ id: 'SystemConfigDiskMonitoringDeviceDto' });
+
+const SystemConfigDiskMonitoringSchema = z
+  .object({
+    enabled: configBool.describe('Enabled'),
+    checkIntervalMinutes: z.int().min(5).max(1440).describe('Check interval in minutes'),
+    retentionDays: z.int().min(1).max(365).describe('History retention in days'),
+    devices: z.array(SystemConfigDiskMonitoringDeviceSchema).describe('Additional monitored devices'),
+  })
+  .superRefine((value, ctx) => {
+    const seen = new Set<string>();
+    for (const device of value.devices) {
+      if (seen.has(device.devicePath)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['devices'],
+          message: 'Device paths must be unique',
+        });
+        return;
+      }
+
+      seen.add(device.devicePath);
+    }
+  })
+  .meta({ id: 'SystemConfigDiskMonitoringDto' });
+
 const SystemConfigSmtpTransportSchema = z
   .object({
     ignoreCert: configBool.describe('Whether to ignore SSL certificate errors'),
@@ -381,6 +414,7 @@ export const SystemConfigSchema = z
     notifications: SystemConfigNotificationsSchema,
     templates: SystemConfigTemplatesSchema,
     server: SystemConfigServerSchema,
+    diskMonitoring: SystemConfigDiskMonitoringSchema,
     user: SystemConfigUserSchema,
   })
   .describe('System configuration')

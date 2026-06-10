@@ -164,6 +164,12 @@ const updatedConfig = Object.freeze<SystemConfig>({
     loginPageMessage: '',
     publicUsers: true,
   },
+  diskMonitoring: {
+    enabled: false,
+    checkIntervalMinutes: 15,
+    retentionDays: 7,
+    devices: [],
+  },
   storageTemplate: {
     enabled: false,
     hashVerificationEnabled: true,

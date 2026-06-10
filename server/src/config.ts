@@ -192,6 +192,17 @@ export type SystemConfig = {
     loginPageMessage: string;
     publicUsers: boolean;
   };
+  diskMonitoring: {
+    enabled: boolean;
+    checkIntervalMinutes: number;
+    retentionDays: number;
+    devices: Array<{
+      name: string;
+      devicePath: string;
+      mountPath: string | null;
+      notes: string | null;
+    }>;
+  };
   user: {
     deleteDelay: number;
   };
@@ -382,6 +393,12 @@ export const defaults = Object.freeze<SystemConfig>({
     externalDomain: '',
     loginPageMessage: '',
     publicUsers: true,
+  },
+  diskMonitoring: {
+    enabled: false,
+    checkIntervalMinutes: 15,
+    retentionDays: 7,
+    devices: [],
   },
   notifications: {
     smtp: {

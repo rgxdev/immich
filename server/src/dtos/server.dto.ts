@@ -57,6 +57,84 @@ const ServerStorageResponseSchema = z
   })
   .meta({ id: 'ServerStorageResponseDto' });
 
+const DiskHealthStatusSchema = z.enum(['healthy', 'warning', 'critical', 'degraded', 'unknown']).meta({
+  id: 'DiskHealthStatus',
+});
+
+const DiskMonitorDeviceSchema = z
+  .object({
+    name: z.string().describe('Display name'),
+    devicePath: z.string().describe('Device path'),
+    mountPath: z.string().nullable().describe('Mount path'),
+    isPrimary: z.boolean().describe('Whether this is the primary Immich storage disk'),
+    deviceType: z.string().nullable().describe('Device type'),
+    protocol: z.string().nullable().describe('Device protocol'),
+    status: DiskHealthStatusSchema.describe('Disk health status'),
+    healthPercent: z.int().min(0).max(100).nullable().describe('Health percentage'),
+    temperatureCelsius: z.int().nullable().describe('Current temperature in celsius'),
+    powerOnHours: z.int().nullable().describe('Power-on hours'),
+    availableBytes: z.int().nullable().describe('Available bytes'),
+    usedBytes: z.int().nullable().describe('Used bytes'),
+    totalBytes: z.int().nullable().describe('Total bytes'),
+    lastCheckedAt: isoDatetimeToDate.describe('Last time the device was checked'),
+    issues: z.array(z.string()).describe('Detected issues'),
+  })
+  .meta({ id: 'DiskMonitorDeviceDto' });
+
+const DiskHealthSummarySchema = z
+  .object({
+    total: z.int().describe('Total monitored devices'),
+    healthy: z.int().describe('Healthy devices'),
+    warning: z.int().describe('Devices with warnings'),
+    critical: z.int().describe('Critical devices'),
+    unknown: z.int().describe('Unknown or degraded devices'),
+  })
+  .meta({ id: 'DiskHealthSummaryDto' });
+
+const DiskHealthResponseSchema = z
+  .object({
+    checkedAt: isoDatetimeToDate.describe('When the last response was generated'),
+    summary: DiskHealthSummarySchema,
+    devices: z.array(DiskMonitorDeviceSchema),
+  })
+  .meta({ id: 'DiskHealthResponseDto' });
+
+const DiskHealthHistoryPointSchema = z
+  .object({
+    createdAt: isoDatetimeToDate.describe('Snapshot timestamp'),
+    status: DiskHealthStatusSchema.describe('Disk health status'),
+    temperatureCelsius: z.int().nullable().describe('Current temperature in celsius'),
+    availableBytes: z.int().nullable().describe('Available bytes'),
+    usedBytes: z.int().nullable().describe('Used bytes'),
+    totalBytes: z.int().nullable().describe('Total bytes'),
+    healthPercent: z.int().min(0).max(100).nullable().describe('Health percentage'),
+  })
+  .meta({ id: 'DiskHealthHistoryPointDto' });
+
+const DiskHealthHistoryDeviceSchema = z
+  .object({
+    name: z.string().describe('Display name'),
+    devicePath: z.string().describe('Device path'),
+    mountPath: z.string().nullable().describe('Mount path'),
+    isPrimary: z.boolean().describe('Whether this is the primary Immich storage disk'),
+    points: z.array(DiskHealthHistoryPointSchema).describe('Historic snapshots'),
+  })
+  .meta({ id: 'DiskHealthHistoryDeviceDto' });
+
+const DiskHealthHistoryResponseSchema = z
+  .object({
+    from: isoDatetimeToDate.describe('History window start'),
+    to: isoDatetimeToDate.describe('History window end'),
+    items: z.array(DiskHealthHistoryDeviceSchema).describe('History per monitored device'),
+  })
+  .meta({ id: 'DiskHealthHistoryResponseDto' });
+
+const DiskHealthHistoryQuerySchema = z
+  .object({
+    devicePath: z.string().optional().describe('Optional device path filter'),
+  })
+  .meta({ id: 'DiskHealthHistoryQueryDto' });
+
 const ServerVersionResponseSchema = z
   .object({
     major: z.int().min(0).describe('Major version number'),
@@ -173,6 +251,13 @@ export class ServerPingResponse extends createZodDto(ServerPingResponseSchema) {
 export class ServerAboutResponseDto extends createZodDto(ServerAboutResponseSchema) {}
 export class ServerApkLinksDto extends createZodDto(ServerApkLinksSchema) {}
 export class ServerStorageResponseDto extends createZodDto(ServerStorageResponseSchema) {}
+export class DiskMonitorDeviceDto extends createZodDto(DiskMonitorDeviceSchema) {}
+export class DiskHealthSummaryDto extends createZodDto(DiskHealthSummarySchema) {}
+export class DiskHealthResponseDto extends createZodDto(DiskHealthResponseSchema) {}
+export class DiskHealthHistoryPointDto extends createZodDto(DiskHealthHistoryPointSchema) {}
+export class DiskHealthHistoryDeviceDto extends createZodDto(DiskHealthHistoryDeviceSchema) {}
+export class DiskHealthHistoryResponseDto extends createZodDto(DiskHealthHistoryResponseSchema) {}
+export class DiskHealthHistoryQueryDto extends createZodDto(DiskHealthHistoryQuerySchema) {}
 
 export class ServerVersionResponseDto extends createZodDto(ServerVersionResponseSchema) {
   static fromSemVer(value: SemVer): z.infer<typeof ServerVersionResponseSchema> {

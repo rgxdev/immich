@@ -1114,6 +1114,7 @@ export const AssetVisibilitySchema = z
   .meta({ id: 'AssetVisibility' });
 
 export enum CronJob {
+  DiskHealthMonitoring = 'DiskHealthMonitoring',
   LibraryScan = 'LibraryScan',
   NightlyJobs = 'NightlyJobs',
   VersionCheck = 'VersionCheck',
