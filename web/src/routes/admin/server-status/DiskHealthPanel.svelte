@@ -154,6 +154,7 @@
     {#await Promise.all([diskHealthPromise, diskHistoryPromise])}
       <div class="h-40 animate-pulse rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray"></div>
     {:then [health, history]}
+      <div class="overflow-x-auto">
       <Table striped size="small">
         <TableHeader>
           <TableHeading>{$t('admin.disk_health_disk')}</TableHeading>
@@ -184,12 +185,12 @@
                   {/if}
                 </div>
               </TableCell>
-              <TableCell>
+              <TableCell class="whitespace-nowrap">
                 <span class={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass[device.status]}`}>
                   {getStatusLabel(device.status)}
                 </span>
               </TableCell>
-              <TableCell>
+              <TableCell class="whitespace-nowrap">
                 {#if device.temperatureCelsius !== null}
                   <div class="flex items-center gap-1">
                     <Icon
@@ -230,7 +231,7 @@
                   <span class="text-gray-400">{$t('not_available')}</span>
                 {/if}
               </TableCell>
-              <TableCell>
+              <TableCell class="whitespace-nowrap">
                 {#if device.healthPercent !== null}
                   <div class="flex flex-col gap-1">
                     <span
@@ -273,6 +274,7 @@
           {/each}
         </TableBody>
       </Table>
+      </div>
     {/await}
   </div>
 </div>
