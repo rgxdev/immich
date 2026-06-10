@@ -92,9 +92,7 @@
           isEdited={configToEdit.diskMonitoring.retentionDays !== config.diskMonitoring.retentionDays}
         />
 
-        <div
-          class="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-immich-dark-border dark:bg-immich-dark-gray/40"
-        >
+        <div class="rounded-2xl border-2 border-primary/20 p-4">
           <div class="flex items-center gap-2 text-primary">
             <Icon icon={mdiHarddisk} size="18" />
             <Text fontWeight="medium">{$t('admin.disk_health_primary_disk')}</Text>
@@ -114,7 +112,7 @@
           {/if}
         </div>
 
-        <div class="rounded-2xl border border-gray-200 p-4 dark:border-immich-dark-border">
+        <div class="rounded-2xl border-2 border-primary/20 p-4">
           <div class="mb-3 flex items-center justify-between">
             <Text fontWeight="medium">{$t('admin.disk_health_additional_disks')}</Text>
             <Button
@@ -130,7 +128,7 @@
 
           <div class="flex flex-col gap-4">
             {#each configToEdit.diskMonitoring.devices as _, i (i)}
-              <div class="rounded-2xl border border-gray-200 p-4 dark:border-immich-dark-border">
+              <div class="rounded-2xl border-2 border-primary/20 p-4">
                 <div class="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
                   <SettingInputField
                     inputType={SettingInputFieldType.TEXT}
