@@ -9,6 +9,7 @@
   let emailNotificationsEnabled = $state(authManager.preferences.emailNotifications?.enabled ?? true);
   let albumInviteNotificationEnabled = $state(authManager.preferences.emailNotifications?.albumInvite ?? true);
   let albumUpdateNotificationEnabled = $state(authManager.preferences.emailNotifications?.albumUpdate ?? true);
+  let diskHealthAlertEnabled = $state(authManager.preferences.emailNotifications?.diskHealthAlert ?? true);
 
   const handleSave = async () => {
     try {
@@ -18,6 +19,7 @@
             enabled: emailNotificationsEnabled,
             albumInvite: emailNotificationsEnabled && albumInviteNotificationEnabled,
             albumUpdate: emailNotificationsEnabled && albumUpdateNotificationEnabled,
+            diskHealthAlert: emailNotificationsEnabled && diskHealthAlertEnabled,
           },
         },
       });
@@ -50,6 +52,10 @@
 
         <Field label={$t('album_updated')} description={$t('album_updated_setting_description')} {disabled}>
           <Switch bind:checked={albumUpdateNotificationEnabled} />
+        </Field>
+
+        <Field label={$t('disk_health_alert')} description={$t('disk_health_alert_description')} {disabled}>
+          <Switch bind:checked={diskHealthAlertEnabled} />
         </Field>
       </div>
 
