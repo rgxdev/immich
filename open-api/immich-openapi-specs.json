@@ -10880,6 +10880,157 @@
         "x-immich-state": "Stable"
       }
     },
+    "/server/disk-health": {
+      "get": {
+        "description": "Retrieve SMART-based health and capacity information for monitored disks.",
+        "operationId": "getDiskHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiskHealthResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "summary": "Get disk health",
+        "tags": [
+          "Server"
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.0.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.0.0",
+            "state": "Alpha"
+          }
+        ],
+        "x-immich-permission": "server.storage",
+        "x-immich-state": "Alpha"
+      }
+    },
+    "/server/disk-health/check": {
+      "post": {
+        "description": "Immediately run SMART-based disk health checks for monitored disks.",
+        "operationId": "runDiskHealthCheck",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiskHealthResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "summary": "Run disk health check",
+        "tags": [
+          "Server"
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.0.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.0.0",
+            "state": "Alpha"
+          }
+        ],
+        "x-immich-permission": "server.storage",
+        "x-immich-state": "Alpha"
+      }
+    },
+    "/server/disk-health/history": {
+      "get": {
+        "description": "Retrieve recent disk health history for monitored disks.",
+        "operationId": "getDiskHealthHistory",
+        "parameters": [
+          {
+            "name": "devicePath",
+            "required": false,
+            "in": "query",
+            "description": "Optional device path filter",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiskHealthHistoryResponseDto"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "cookie": []
+          },
+          {
+            "api_key": []
+          }
+        ],
+        "summary": "Get disk health history",
+        "tags": [
+          "Server"
+        ],
+        "x-immich-admin-only": true,
+        "x-immich-history": [
+          {
+            "version": "v3.0.0",
+            "state": "Added"
+          },
+          {
+            "version": "v3.0.0",
+            "state": "Alpha"
+          }
+        ],
+        "x-immich-permission": "server.storage",
+        "x-immich-state": "Alpha"
+      }
+    },
     "/server/features": {
       "get": {
         "description": "Retrieve available features supported by this server.",
@@ -18269,6 +18420,320 @@
         },
         "type": "object"
       },
+      "DiskHealthHistoryDeviceDto": {
+        "properties": {
+          "devicePath": {
+            "description": "Device path",
+            "type": "string"
+          },
+          "isPrimary": {
+            "description": "Whether this is the primary Immich storage disk",
+            "type": "boolean"
+          },
+          "mountPath": {
+            "description": "Mount path",
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "description": "Display name",
+            "type": "string"
+          },
+          "points": {
+            "description": "Historic snapshots",
+            "items": {
+              "$ref": "#/components/schemas/DiskHealthHistoryPointDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "devicePath",
+          "isPrimary",
+          "mountPath",
+          "name",
+          "points"
+        ],
+        "type": "object"
+      },
+      "DiskHealthHistoryPointDto": {
+        "properties": {
+          "availableBytes": {
+            "description": "Available bytes",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "nullable": true,
+            "type": "integer"
+          },
+          "createdAt": {
+            "description": "Snapshot timestamp",
+            "example": "2024-01-01T00:00:00.000Z",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+            "type": "string"
+          },
+          "healthPercent": {
+            "description": "Health percentage",
+            "maximum": 100,
+            "minimum": 0,
+            "nullable": true,
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DiskHealthStatus",
+            "description": "Disk health status"
+          },
+          "temperatureCelsius": {
+            "description": "Current temperature in celsius",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "nullable": true,
+            "type": "integer"
+          },
+          "totalBytes": {
+            "description": "Total bytes",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "nullable": true,
+            "type": "integer"
+          },
+          "usedBytes": {
+            "description": "Used bytes",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "nullable": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "availableBytes",
+          "createdAt",
+          "healthPercent",
+          "status",
+          "temperatureCelsius",
+          "totalBytes",
+          "usedBytes"
+        ],
+        "type": "object"
+      },
+      "DiskHealthHistoryResponseDto": {
+        "properties": {
+          "from": {
+            "description": "History window start",
+            "example": "2024-01-01T00:00:00.000Z",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+            "type": "string"
+          },
+          "items": {
+            "description": "History per monitored device",
+            "items": {
+              "$ref": "#/components/schemas/DiskHealthHistoryDeviceDto"
+            },
+            "type": "array"
+          },
+          "to": {
+            "description": "History window end",
+            "example": "2024-01-01T00:00:00.000Z",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "items",
+          "to"
+        ],
+        "type": "object"
+      },
+      "DiskHealthResponseDto": {
+        "properties": {
+          "checkedAt": {
+            "description": "When the last response was generated",
+            "example": "2024-01-01T00:00:00.000Z",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+            "type": "string"
+          },
+          "devices": {
+            "items": {
+              "$ref": "#/components/schemas/DiskMonitorDeviceDto"
+            },
+            "type": "array"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/DiskHealthSummaryDto"
+          }
+        },
+        "required": [
+          "checkedAt",
+          "devices",
+          "summary"
+        ],
+        "type": "object"
+      },
+      "DiskHealthStatus": {
+        "enum": [
+          "healthy",
+          "warning",
+          "critical",
+          "degraded",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "DiskHealthSummaryDto": {
+        "properties": {
+          "critical": {
+            "description": "Critical devices",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "healthy": {
+            "description": "Healthy devices",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "total": {
+            "description": "Total monitored devices",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "unknown": {
+            "description": "Unknown or degraded devices",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          },
+          "warning": {
+            "description": "Devices with warnings",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "critical",
+          "healthy",
+          "total",
+          "unknown",
+          "warning"
+        ],
+        "type": "object"
+      },
+      "DiskMonitorDeviceDto": {
+        "properties": {
+          "availableBytes": {
+            "description": "Available bytes",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "nullable": true,
+            "type": "integer"
+          },
+          "devicePath": {
+            "description": "Device path",
+            "type": "string"
+          },
+          "deviceType": {
+            "description": "Device type",
+            "nullable": true,
+            "type": "string"
+          },
+          "healthPercent": {
+            "description": "Health percentage",
+            "maximum": 100,
+            "minimum": 0,
+            "nullable": true,
+            "type": "integer"
+          },
+          "isPrimary": {
+            "description": "Whether this is the primary Immich storage disk",
+            "type": "boolean"
+          },
+          "issues": {
+            "description": "Detected issues",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "lastCheckedAt": {
+            "description": "Last time the device was checked",
+            "example": "2024-01-01T00:00:00.000Z",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+            "type": "string"
+          },
+          "mountPath": {
+            "description": "Mount path",
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "description": "Display name",
+            "type": "string"
+          },
+          "powerOnHours": {
+            "description": "Power-on hours",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "nullable": true,
+            "type": "integer"
+          },
+          "protocol": {
+            "description": "Device protocol",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DiskHealthStatus",
+            "description": "Disk health status"
+          },
+          "temperatureCelsius": {
+            "description": "Current temperature in celsius",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "nullable": true,
+            "type": "integer"
+          },
+          "totalBytes": {
+            "description": "Total bytes",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "nullable": true,
+            "type": "integer"
+          },
+          "usedBytes": {
+            "description": "Used bytes",
+            "maximum": 9007199254740991,
+            "minimum": -9007199254740991,
+            "nullable": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "availableBytes",
+          "devicePath",
+          "deviceType",
+          "healthPercent",
+          "isPrimary",
+          "issues",
+          "lastCheckedAt",
+          "mountPath",
+          "name",
+          "powerOnHours",
+          "protocol",
+          "status",
+          "temperatureCelsius",
+          "totalBytes",
+          "usedBytes"
+        ],
+        "type": "object"
+      },
       "DownloadArchiveDto": {
         "properties": {
           "assetIds": {
@@ -24920,11 +25385,80 @@
         ],
         "type": "object"
       },
+      "SystemConfigDiskMonitoringDeviceDto": {
+        "properties": {
+          "devicePath": {
+            "description": "Device path",
+            "minLength": 1,
+            "type": "string"
+          },
+          "mountPath": {
+            "description": "Mount path",
+            "minLength": 1,
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "description": "Display name",
+            "minLength": 1,
+            "type": "string"
+          },
+          "notes": {
+            "description": "Notes",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "devicePath",
+          "mountPath",
+          "name",
+          "notes"
+        ],
+        "type": "object"
+      },
+      "SystemConfigDiskMonitoringDto": {
+        "properties": {
+          "checkIntervalMinutes": {
+            "description": "Check interval in minutes",
+            "maximum": 1440,
+            "minimum": 5,
+            "type": "integer"
+          },
+          "devices": {
+            "description": "Additional monitored devices",
+            "items": {
+              "$ref": "#/components/schemas/SystemConfigDiskMonitoringDeviceDto"
+            },
+            "type": "array"
+          },
+          "enabled": {
+            "description": "Enabled",
+            "type": "boolean"
+          },
+          "retentionDays": {
+            "description": "History retention in days",
+            "maximum": 365,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "checkIntervalMinutes",
+          "devices",
+          "enabled",
+          "retentionDays"
+        ],
+        "type": "object"
+      },
       "SystemConfigDto": {
         "description": "System configuration",
         "properties": {
           "backup": {
             "$ref": "#/components/schemas/SystemConfigBackupsDto"
+          },
+          "diskMonitoring": {
+            "$ref": "#/components/schemas/SystemConfigDiskMonitoringDto"
           },
           "ffmpeg": {
             "$ref": "#/components/schemas/SystemConfigFFmpegDto"
@@ -24989,6 +25523,7 @@
         },
         "required": [
           "backup",
+          "diskMonitoring",
           "ffmpeg",
           "image",
           "job",
