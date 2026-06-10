@@ -100,6 +100,7 @@
     "disk_health_mount_path": "Einhängepunkt",
     "disk_health_mount_path_description": "Optionaler Pfad für Kapazitätsstatistiken, z. B. /mnt/archiv.",
     "disk_health_no_smart_info": "Keine SMART-Gesundheitsinformationen verfügbar",
+    "disk_health_notes_description": "Optionale Freitext-Notizen zu diesem Datenträger.",
     "disk_health_not_enough_history": "Zu wenig Verlaufsdaten",
     "disk_health_primary_disk": "Primärer Datenträger",
     "disk_health_primary_disk_description": "Der primäre Immich-Speicherdatenträger wird automatisch erkannt und kann hier nicht bearbeitet werden.",

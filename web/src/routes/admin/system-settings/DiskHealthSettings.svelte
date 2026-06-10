@@ -161,7 +161,7 @@
                   </div>
                 </div>
 
-                <div class="mt-4 grid items-end gap-4 md:grid-cols-2">
+                <div class="mt-4 grid gap-4 md:grid-cols-2">
                   <SettingInputField
                     inputType={SettingInputFieldType.TEXT}
                     label={$t('admin.disk_health_mount_path')}
@@ -173,6 +173,7 @@
                   <SettingInputField
                     inputType={SettingInputFieldType.TEXT}
                     label={$t('notes')}
+                    description={$t('admin.disk_health_notes_description')}
                     bind:value={configToEdit.diskMonitoring.devices[i].notes}
                     disabled={disabled || !configToEdit.diskMonitoring.enabled}
                   />
