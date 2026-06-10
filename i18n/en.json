@@ -97,6 +97,7 @@
     "disk_health_monitoring_description": "Monitor SMART health, temperature, capacity, and trend history for the primary storage disk and extra devices.",
     "disk_health_mount_path": "Mount path",
     "disk_health_mount_path_description": "Optional path used for capacity statistics, for example /mnt/archive.",
+    "disk_health_no_smart_info": "No SMART health information available",
     "disk_health_not_enough_history": "Not enough history",
     "disk_health_primary_disk": "Primary disk",
     "disk_health_primary_disk_description": "The primary Immich storage disk is detected automatically and cannot be edited here.",
