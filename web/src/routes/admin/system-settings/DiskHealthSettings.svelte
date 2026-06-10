@@ -161,7 +161,7 @@
                   </div>
                 </div>
 
-                <div class="mt-4 grid gap-4 md:grid-cols-2">
+                <div class="mt-4 grid items-end gap-4 md:grid-cols-2">
                   <SettingInputField
                     inputType={SettingInputFieldType.TEXT}
                     label={$t('admin.disk_health_mount_path')}
