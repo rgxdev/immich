@@ -154,7 +154,6 @@
     {#await Promise.all([diskHealthPromise, diskHistoryPromise])}
       <div class="h-40 animate-pulse rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray"></div>
     {:then [health, history]}
-      <div class="overflow-x-auto">
       <Table striped size="small">
         <TableHeader>
           <TableHeading>{$t('admin.disk_health_disk')}</TableHeading>
@@ -254,14 +253,14 @@
                     <polyline fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" points={trend}></polyline>
                   </svg>
                 {:else}
-                  <span class="whitespace-nowrap text-xs italic text-gray-400">{$t('admin.disk_health_not_enough_history')}</span>
+                  <span class="break-words text-xs italic text-gray-400">{$t('admin.disk_health_not_enough_history')}</span>
                 {/if}
               </TableCell>
               <TableCell>
                 {#if device.issues.length > 0}
                   <div class="space-y-1">
                     {#each device.issues as issue}
-                      <div class="whitespace-nowrap rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">
+                      <div class="break-words rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">
                         {translateIssue(issue)}
                       </div>
                     {/each}
@@ -274,7 +273,6 @@
           {/each}
         </TableBody>
       </Table>
-      </div>
     {/await}
   </div>
 </div>
