@@ -216,6 +216,53 @@ export class NotificationService extends BaseService {
     this.websocketRepository.clientBroadcast('on_user_delete', id);
   }
 
+  @OnEvent({ name: 'DiskHealthAlert' })
+  async onDiskHealthAlert({ devices }: ArgOf<'DiskHealthAlert'>) {
+    const admin = await this.userRepository.getAdmin();
+    if (!admin) {
+      return;
+    }
+
+    for (const device of devices) {
+      const isRecovery = device.status === 'healthy';
+      const isCritical = device.status === 'critical';
+      const level = isRecovery ? NotificationLevel.Success : isCritical ? NotificationLevel.Error : NotificationLevel.Warning;
+
+      const item = await this.notificationRepository.create({
+        userId: admin.id,
+        type: NotificationType.DiskHealthAlert,
+        level,
+        title: isRecovery ? 'Disk Health Recovered' : 'Disk Health Alert',
+        description: isRecovery
+          ? `${device.name} (${device.devicePath}) recovered to healthy status`
+          : `${device.name} (${device.devicePath}) status changed from ${device.previousStatus} to ${device.status}`,
+        data: JSON.stringify({ devicePath: device.devicePath }),
+      });
+
+      this.websocketRepository.clientSend('on_notification', admin.id, mapNotification(item));
+    }
+
+    const { emailNotifications } = getPreferences(admin.metadata);
+    if (!emailNotifications.enabled || !emailNotifications.diskHealthAlert) {
+      return;
+    }
+
+    const deviceLines = devices
+      .map((d) => `<li><strong>${d.name}</strong> (${d.devicePath}): ${d.previousStatus} → ${d.status}</li>`)
+      .join('');
+    const deviceText = devices.map((d) => `- ${d.name} (${d.devicePath}): ${d.previousStatus} → ${d.status}`).join('\n');
+
+    await this.jobRepository.queue({
+      name: JobName.SendMail,
+      data: {
+        to: admin.email,
+        subject: `Disk Health Alert – ${devices.length} disk(s) changed status`,
+        html: `<p>The following disk(s) have changed health status:</p><ul>${deviceLines}</ul>`,
+        text: `The following disk(s) have changed health status:\n${deviceText}`,
+      },
+    });
+  }
+
   @OnEvent({ name: 'AlbumUpdate' })
   async onAlbumUpdate({ id, recipientId }: ArgOf<'AlbumUpdate'>) {
     await this.jobRepository.removeJob(JobName.NotifyAlbumUpdate, `${id}/${recipientId}`);
