@@ -9,6 +9,7 @@
   import { Button, IconButton, Text, toastManager } from '@immich/ui';
   import { mdiPlus, mdiTrashCanOutline } from '@mdi/js';
   import { onMount } from 'svelte';
+  import { t } from 'svelte-i18n';
   import { fade } from 'svelte/transition';
 
   const disabled = $derived(featureFlagsManager.value.configFile);
@@ -46,12 +47,12 @@
       device.notes = device.notes?.trim() ? device.notes : null;
 
       if (!device.name.trim() || !device.devicePath.trim()) {
-        toastManager.danger('Each monitored disk needs a name and a device path.');
+        toastManager.danger($t('admin.disk_health_validation_missing_fields'));
         return false;
       }
 
       if (seen.has(device.devicePath)) {
-        toastManager.danger('Device paths must be unique.');
+        toastManager.danger($t('admin.disk_health_validation_duplicate_device_paths'));
         return false;
       }
 
@@ -67,16 +68,16 @@
     <form autocomplete="off" onsubmit={(event) => event.preventDefault()}>
       <div class="ms-4 mt-4 flex flex-col gap-4">
         <SettingSwitch
-          title="Enable disk health monitoring"
-          subtitle="Run SMART-based health checks for the primary Immich storage disk and any additional configured devices."
+          title={$t('admin.disk_health_enable')}
+          subtitle={$t('admin.disk_health_enable_description')}
           {disabled}
           bind:checked={configToEdit.diskMonitoring.enabled}
         />
 
         <SettingInputField
           inputType={SettingInputFieldType.NUMBER}
-          label="Check interval (minutes)"
-          description="How often Immich should refresh SMART health and capacity snapshots."
+          label={$t('admin.disk_health_check_interval')}
+          description={$t('admin.disk_health_check_interval_description')}
           bind:value={configToEdit.diskMonitoring.checkIntervalMinutes}
           disabled={disabled || !configToEdit.diskMonitoring.enabled}
           isEdited={configToEdit.diskMonitoring.checkIntervalMinutes !== config.diskMonitoring.checkIntervalMinutes}
@@ -84,18 +85,20 @@
 
         <SettingInputField
           inputType={SettingInputFieldType.NUMBER}
-          label="History retention (days)"
-          description="How long lightweight disk-health snapshots should be kept for trend charts."
+          label={$t('admin.disk_health_retention')}
+          description={$t('admin.disk_health_retention_description')}
           bind:value={configToEdit.diskMonitoring.retentionDays}
           disabled={disabled || !configToEdit.diskMonitoring.enabled}
           isEdited={configToEdit.diskMonitoring.retentionDays !== config.diskMonitoring.retentionDays}
         />
 
-        <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-immich-dark-border dark:bg-immich-dark-gray/40">
-          <Text fontWeight="medium">Primary disk</Text>
+        <div
+          class="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-immich-dark-border dark:bg-immich-dark-gray/40"
+        >
+          <Text fontWeight="medium">{$t('admin.disk_health_primary_disk')}</Text>
           {#if primaryDisk}
             <div class="mt-2 text-sm text-gray-700 dark:text-gray-300">
-              <div><strong>{primaryDisk.name}</strong></div>
+              <div><strong>{$t('admin.disk_health_primary_disk')}</strong></div>
               <div>{primaryDisk.devicePath}</div>
               {#if primaryDisk.mountPath}
                 <div>{primaryDisk.mountPath}</div>
@@ -103,14 +106,14 @@
             </div>
           {:else}
             <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              The primary Immich storage disk is detected automatically and cannot be edited here.
+              {$t('admin.disk_health_primary_disk_description')}
             </div>
           {/if}
         </div>
 
         <div class="rounded-2xl border border-gray-200 p-4 dark:border-immich-dark-border">
           <div class="mb-3 flex items-center justify-between">
-            <Text fontWeight="medium">Additional disks</Text>
+            <Text fontWeight="medium">{$t('admin.disk_health_additional_disks')}</Text>
             <Button
               size="small"
               shape="round"
@@ -118,7 +121,7 @@
               onclick={addDevice}
               disabled={disabled || !configToEdit.diskMonitoring.enabled}
             >
-              Add disk
+              {$t('admin.disk_health_add_disk')}
             </Button>
           </div>
 
@@ -128,21 +131,21 @@
                 <div class="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
                   <SettingInputField
                     inputType={SettingInputFieldType.TEXT}
-                    label="Display name"
+                    label={$t('admin.disk_health_display_name')}
                     bind:value={configToEdit.diskMonitoring.devices[i].name}
                     disabled={disabled || !configToEdit.diskMonitoring.enabled}
                   />
 
                   <SettingInputField
                     inputType={SettingInputFieldType.TEXT}
-                    label="Device path"
+                    label={$t('admin.disk_health_device_path')}
                     bind:value={configToEdit.diskMonitoring.devices[i].devicePath}
                     disabled={disabled || !configToEdit.diskMonitoring.enabled}
                   />
 
                   <div class="flex items-end justify-end">
                     <IconButton
-                      aria-label="Remove disk"
+                      aria-label={$t('admin.disk_health_remove_disk')}
                       onclick={() => configToEdit.diskMonitoring.devices.splice(i, 1)}
                       icon={mdiTrashCanOutline}
                       color="danger"
@@ -154,15 +157,15 @@
                 <div class="mt-4 grid gap-4 md:grid-cols-2">
                   <SettingInputField
                     inputType={SettingInputFieldType.TEXT}
-                    label="Mount path"
-                    description="Optional path used for capacity statistics, for example /mnt/archive."
+                    label={$t('admin.disk_health_mount_path')}
+                    description={$t('admin.disk_health_mount_path_description')}
                     bind:value={configToEdit.diskMonitoring.devices[i].mountPath}
                     disabled={disabled || !configToEdit.diskMonitoring.enabled}
                   />
 
                   <SettingInputField
                     inputType={SettingInputFieldType.TEXT}
-                    label="Notes"
+                    label={$t('notes')}
                     bind:value={configToEdit.diskMonitoring.devices[i].notes}
                     disabled={disabled || !configToEdit.diskMonitoring.enabled}
                   />

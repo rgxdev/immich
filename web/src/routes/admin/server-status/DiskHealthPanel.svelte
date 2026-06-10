@@ -1,7 +1,18 @@
 <script lang="ts">
   import { locale } from '$lib/stores/preferences.store';
   import type { DiskHealthHistoryResponseDto, DiskHealthResponseDto } from '@immich/sdk';
-  import { Code, FormatBytes, Table, TableBody, TableCell, TableHeader, TableHeading, TableRow, Text } from '@immich/ui';
+  import {
+    Code,
+    FormatBytes,
+    Table,
+    TableBody,
+    TableCell,
+    TableHeader,
+    TableHeading,
+    TableRow,
+    Text,
+  } from '@immich/ui';
+  import { t } from 'svelte-i18n';
 
   type Props = {
     diskHealthPromise: Promise<DiskHealthResponseDto>;
@@ -16,6 +27,21 @@
     critical: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300',
     degraded: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300',
     unknown: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+  };
+
+  const getStatusLabel = (status: DiskHealthResponseDto['devices'][number]['status']) => {
+    switch (status) {
+      case 'healthy':
+        return $t('admin.disk_health_status_healthy');
+      case 'warning':
+        return $t('warning');
+      case 'critical':
+        return $t('admin.disk_health_status_critical');
+      case 'degraded':
+        return $t('admin.disk_health_status_degraded');
+      case 'unknown':
+        return $t('unknown');
+    }
   };
 
   const buildSparkline = (values: Array<number | null>) => {
@@ -41,7 +67,7 @@
 
 <div class="mt-8 flex flex-col gap-5">
   <div>
-    <Text class="mb-2" fontWeight="medium">Disk Health</Text>
+    <Text class="mb-2" fontWeight="medium">{$t('admin.disk_health_monitoring')}</Text>
     {#await diskHealthPromise}
       <div class="grid gap-4 md:grid-cols-4">
         {#each Array(4) as _}
@@ -51,19 +77,19 @@
     {:then health}
       <div class="grid gap-4 md:grid-cols-4">
         <div class="rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray">
-          <div class="text-sm text-gray-500">Monitored disks</div>
+          <div class="text-sm text-gray-500">{$t('admin.disk_health_monitored_disks')}</div>
           <div class="mt-2 font-mono text-3xl text-primary">{health.summary.total}</div>
         </div>
         <div class="rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray">
-          <div class="text-sm text-gray-500">Healthy</div>
+          <div class="text-sm text-gray-500">{$t('admin.disk_health_status_healthy')}</div>
           <div class="mt-2 font-mono text-3xl text-primary">{health.summary.healthy}</div>
         </div>
         <div class="rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray">
-          <div class="text-sm text-gray-500">Warnings</div>
+          <div class="text-sm text-gray-500">{$t('warning')}</div>
           <div class="mt-2 font-mono text-3xl text-primary">{health.summary.warning}</div>
         </div>
         <div class="rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray">
-          <div class="text-sm text-gray-500">Critical / Unknown</div>
+          <div class="text-sm text-gray-500">{$t('admin.disk_health_status_critical_unknown')}</div>
           <div class="mt-2 font-mono text-3xl text-primary">{health.summary.critical + health.summary.unknown}</div>
         </div>
       </div>
@@ -71,19 +97,19 @@
   </div>
 
   <div>
-    <Text class="mb-2" fontWeight="medium">Disk Details</Text>
+    <Text class="mb-2" fontWeight="medium">{$t('admin.disk_health_disk_details')}</Text>
     {#await Promise.all([diskHealthPromise, diskHistoryPromise])}
       <div class="h-40 rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray"></div>
     {:then [health, history]}
       <Table striped size="small">
         <TableHeader>
-          <TableHeading>Disk</TableHeading>
-          <TableHeading>Status</TableHeading>
-          <TableHeading>Temperature</TableHeading>
-          <TableHeading>Capacity</TableHeading>
-          <TableHeading>Health</TableHeading>
-          <TableHeading>Trend</TableHeading>
-          <TableHeading>Issues</TableHeading>
+          <TableHeading>{$t('admin.disk_health_disk')}</TableHeading>
+          <TableHeading>{$t('admin.disk_health_status')}</TableHeading>
+          <TableHeading>{$t('admin.disk_health_temperature')}</TableHeading>
+          <TableHeading>{$t('admin.disk_health_capacity')}</TableHeading>
+          <TableHeading>{$t('admin.disk_health_health')}</TableHeading>
+          <TableHeading>{$t('admin.disk_health_trend')}</TableHeading>
+          <TableHeading>{$t('admin.disk_health_issues')}</TableHeading>
         </TableHeader>
         <TableBody>
           {#each health.devices as device (device.devicePath)}
@@ -92,7 +118,9 @@
             <TableRow>
               <TableCell>
                 <div class="flex flex-col">
-                  <span class="font-medium">{device.name}</span>
+                  <span class="font-medium"
+                    >{device.isPrimary ? $t('admin.disk_health_primary_disk') : device.name}</span
+                  >
                   <Code>{device.devicePath}</Code>
                   {#if device.mountPath}
                     <span class="text-xs text-gray-500">{device.mountPath}</span>
@@ -100,23 +128,30 @@
                 </div>
               </TableCell>
               <TableCell>
-                <span class={`rounded-full px-2 py-1 text-xs font-medium capitalize ${statusClass[device.status]}`}>
-                  {device.status}
+                <span class={`rounded-full px-2 py-1 text-xs font-medium ${statusClass[device.status]}`}>
+                  {getStatusLabel(device.status)}
                 </span>
               </TableCell>
-              <TableCell>{device.temperatureCelsius === null ? 'n/a' : `${device.temperatureCelsius} C`}</TableCell>
+              <TableCell
+                >{device.temperatureCelsius === null
+                  ? $t('not_available')
+                  : `${device.temperatureCelsius} °C`}</TableCell
+              >
               <TableCell>
                 {#if device.totalBytes !== null}
-                  <FormatBytes bytes={device.usedBytes ?? 0} precision={0} /> / <FormatBytes bytes={device.totalBytes} precision={0} />
+                  <FormatBytes bytes={device.usedBytes ?? 0} precision={0} /> / <FormatBytes
+                    bytes={device.totalBytes}
+                    precision={0}
+                  />
                 {:else}
-                  n/a
+                  {$t('not_available')}
                 {/if}
               </TableCell>
               <TableCell>
                 {#if device.healthPercent !== null}
                   {device.healthPercent.toLocaleString($locale)}%
                 {:else}
-                  n/a
+                  {$t('not_available')}
                 {/if}
               </TableCell>
               <TableCell>
@@ -125,7 +160,7 @@
                     <polyline fill="none" stroke="currentColor" stroke-width="4" points={trend}></polyline>
                   </svg>
                 {:else}
-                  <span class="text-xs text-gray-500">Not enough history</span>
+                  <span class="text-xs text-gray-500">{$t('admin.disk_health_not_enough_history')}</span>
                 {/if}
               </TableCell>
               <TableCell>
@@ -134,7 +169,7 @@
                     {device.issues.join(', ')}
                   </div>
                 {:else}
-                  <span class="text-xs text-gray-500">None</span>
+                  <span class="text-xs text-gray-500">{$t('none')}</span>
                 {/if}
               </TableCell>
             </TableRow>

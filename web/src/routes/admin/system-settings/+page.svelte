@@ -79,8 +79,8 @@
     },
     {
       component: DiskHealthSettings,
-      title: 'Disk Health Monitoring',
-      subtitle: 'Monitor SMART health, temperature, capacity, and trend history for the primary storage disk and extra devices.',
+      title: $t('admin.disk_health_monitoring'),
+      subtitle: $t('admin.disk_health_monitoring_description'),
       key: 'disk-health',
       icon: mdiHarddisk,
     },
