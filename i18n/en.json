@@ -993,6 +993,8 @@
   "discovered_devices": "Discovered devices",
   "dismiss_all_errors": "Dismiss all errors",
   "dismiss_error": "Dismiss error",
+  "disk_health_alert": "Disk health alert",
+  "disk_health_alert_description": "Receive an email notification when a disk health status changes",
   "display_options": "Display options",
   "display_order": "Display order",
   "display_original_photos": "Display original photos",

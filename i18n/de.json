@@ -975,6 +975,8 @@
   "discovered_devices": "Gefundene Geräte",
   "dismiss_all_errors": "Alle Fehler ignorieren",
   "dismiss_error": "Fehler ignorieren",
+  "disk_health_alert": "Disk-Health-Benachrichtigung",
+  "disk_health_alert_description": "E-Mail-Benachrichtigung erhalten, wenn sich der Gesundheitsstatus eines Datenträgers ändert",
   "display_options": "Anzeigeoptionen",
   "display_order": "Anzeigereihenfolge",
   "display_original_photos": "Originale Fotos anzeigen",
