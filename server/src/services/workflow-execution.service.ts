@@ -286,7 +286,9 @@ export class WorkflowExecutionService extends BaseService {
 
   @OnJob({ name: JobName.WorkflowAssetTrigger, queue: QueueName.Workflow })
   handleAssetTrigger({ workflowId, assetId }: JobOf<JobName.WorkflowAssetTrigger>) {
-    return this.execute(workflowId, (type) => {
+    return this.execute(
+      workflowId,
+      ((type: any) => {
       const assetService = BaseService.create(AssetService, this);
 
       switch (type) {
@@ -300,7 +302,7 @@ export class WorkflowExecutionService extends BaseService {
               };
             },
             write: async (auth, changes) => {
-              const asset = changes.asset;
+              const asset = (changes as any).asset;
               if (!asset) {
                 return;
               }
@@ -329,10 +331,11 @@ export class WorkflowExecutionService extends BaseService {
                 // iso: asset.exifInfo?.iso,
               });
             },
-          } satisfies ExecuteOptions<typeof type>;
+          } as ExecuteOptions<typeof type>;
         }
       }
-    });
+      }) as any,
+    );
   }
 
   private async execute<T extends WorkflowType>(
