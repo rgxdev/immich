@@ -4,6 +4,7 @@
   import {
     Code,
     FormatBytes,
+    Icon,
     Table,
     TableBody,
     TableCell,
@@ -12,6 +13,13 @@
     TableRow,
     Text,
   } from '@immich/ui';
+  import {
+    mdiAlertCircle,
+    mdiAlertOutline,
+    mdiCheckCircleOutline,
+    mdiHarddisk,
+    mdiThermometer,
+  } from '@mdi/js';
   import { t } from 'svelte-i18n';
 
   type Props = {
@@ -63,6 +71,17 @@
 
     return points;
   };
+
+  const getCapacityPercent = (usedBytes: number | null, totalBytes: number | null) => {
+    if (usedBytes === null || totalBytes === null || totalBytes === 0) return null;
+    return Math.round((usedBytes / totalBytes) * 100);
+  };
+
+  const getCapacityBarClass = (percent: number) => {
+    if (percent >= 90) return 'bg-red-500';
+    if (percent >= 75) return 'bg-amber-500';
+    return 'bg-immich-primary dark:bg-immich-dark-primary';
+  };
 </script>
 
 <div class="mt-8 flex flex-col gap-5">
@@ -71,26 +90,53 @@
     {#await diskHealthPromise}
       <div class="grid gap-4 md:grid-cols-4">
         {#each Array(4) as _}
-          <div class="h-28 rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray"></div>
+          <div class="h-28 animate-pulse rounded-3xl bg-subtle dark:bg-immich-dark-gray"></div>
         {/each}
       </div>
     {:then health}
       <div class="grid gap-4 md:grid-cols-4">
-        <div class="rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray">
-          <div class="text-sm text-gray-500">{$t('admin.disk_health_monitored_disks')}</div>
-          <div class="mt-2 font-mono text-3xl text-primary">{health.summary.total}</div>
+        <div class="flex h-28 flex-col justify-between rounded-3xl bg-subtle p-5 text-primary dark:bg-immich-dark-gray">
+          <div class="flex items-center gap-2">
+            <Icon icon={mdiHarddisk} size="20" />
+            <span class="text-sm font-medium">{$t('admin.disk_health_monitored_disks')}</span>
+          </div>
+          <div class="font-mono text-3xl font-semibold">{health.summary.total}</div>
         </div>
-        <div class="rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray">
-          <div class="text-sm text-gray-500">{$t('admin.disk_health_status_healthy')}</div>
-          <div class="mt-2 font-mono text-3xl text-primary">{health.summary.healthy}</div>
+
+        <div
+          class="flex h-28 flex-col justify-between rounded-3xl p-5 {health.summary.healthy > 0
+            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+            : 'bg-subtle text-gray-500 dark:bg-immich-dark-gray'}"
+        >
+          <div class="flex items-center gap-2">
+            <Icon icon={mdiCheckCircleOutline} size="20" />
+            <span class="text-sm font-medium">{$t('admin.disk_health_status_healthy')}</span>
+          </div>
+          <div class="font-mono text-3xl font-semibold">{health.summary.healthy}</div>
         </div>
-        <div class="rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray">
-          <div class="text-sm text-gray-500">{$t('warning')}</div>
-          <div class="mt-2 font-mono text-3xl text-primary">{health.summary.warning}</div>
+
+        <div
+          class="flex h-28 flex-col justify-between rounded-3xl p-5 {health.summary.warning > 0
+            ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
+            : 'bg-subtle text-gray-500 dark:bg-immich-dark-gray'}"
+        >
+          <div class="flex items-center gap-2">
+            <Icon icon={mdiAlertOutline} size="20" />
+            <span class="text-sm font-medium">{$t('warning')}</span>
+          </div>
+          <div class="font-mono text-3xl font-semibold">{health.summary.warning}</div>
         </div>
-        <div class="rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray">
-          <div class="text-sm text-gray-500">{$t('admin.disk_health_status_critical_unknown')}</div>
-          <div class="mt-2 font-mono text-3xl text-primary">{health.summary.critical + health.summary.unknown}</div>
+
+        <div
+          class="flex h-28 flex-col justify-between rounded-3xl p-5 {health.summary.critical + health.summary.unknown > 0
+            ? 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300'
+            : 'bg-subtle text-gray-500 dark:bg-immich-dark-gray'}"
+        >
+          <div class="flex items-center gap-2">
+            <Icon icon={mdiAlertCircle} size="20" />
+            <span class="text-sm font-medium">{$t('admin.disk_health_status_critical_unknown')}</span>
+          </div>
+          <div class="font-mono text-3xl font-semibold">{health.summary.critical + health.summary.unknown}</div>
         </div>
       </div>
     {/await}
@@ -99,7 +145,7 @@
   <div>
     <Text class="mb-2" fontWeight="medium">{$t('admin.disk_health_disk_details')}</Text>
     {#await Promise.all([diskHealthPromise, diskHistoryPromise])}
-      <div class="h-40 rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray"></div>
+      <div class="h-40 animate-pulse rounded-3xl bg-subtle p-5 dark:bg-immich-dark-gray"></div>
     {:then [health, history]}
       <Table striped size="small">
         <TableHeader>
@@ -115,61 +161,105 @@
           {#each health.devices as device (device.devicePath)}
             {@const historyItem = history.items.find((item) => item.devicePath === device.devicePath)}
             {@const trend = buildSparkline(historyItem?.points.map((point) => point.temperatureCelsius) ?? [])}
+            {@const capacityPercent = getCapacityPercent(device.usedBytes ?? null, device.totalBytes)}
             <TableRow>
               <TableCell>
-                <div class="flex flex-col">
-                  <span class="font-medium"
-                    >{device.isPrimary ? $t('admin.disk_health_primary_disk') : device.name}</span
-                  >
-                  <Code>{device.devicePath}</Code>
+                <div class="flex min-w-0 flex-col gap-0.5">
+                  <div class="flex items-center gap-1.5">
+                    <Icon icon={mdiHarddisk} size="14" class="shrink-0 text-gray-400" />
+                    <span class="font-medium"
+                      >{device.isPrimary ? $t('admin.disk_health_primary_disk') : device.name}</span
+                    >
+                  </div>
+                  <Code class="max-w-48 truncate text-xs">{device.devicePath}</Code>
                   {#if device.mountPath}
                     <span class="text-xs text-gray-500">{device.mountPath}</span>
                   {/if}
                 </div>
               </TableCell>
               <TableCell>
-                <span class={`rounded-full px-2 py-1 text-xs font-medium ${statusClass[device.status]}`}>
+                <span class={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass[device.status]}`}>
                   {getStatusLabel(device.status)}
                 </span>
               </TableCell>
-              <TableCell
-                >{device.temperatureCelsius === null
-                  ? $t('not_available')
-                  : `${device.temperatureCelsius} °C`}</TableCell
-              >
+              <TableCell>
+                {#if device.temperatureCelsius !== null}
+                  <div class="flex items-center gap-1">
+                    <Icon
+                      icon={mdiThermometer}
+                      size="14"
+                      class={device.temperatureCelsius >= 55
+                        ? 'text-red-500'
+                        : device.temperatureCelsius >= 45
+                          ? 'text-amber-500'
+                          : 'text-gray-400'}
+                    />
+                    <span>{device.temperatureCelsius} °C</span>
+                  </div>
+                {:else}
+                  <span class="text-gray-400">{$t('not_available')}</span>
+                {/if}
+              </TableCell>
               <TableCell>
                 {#if device.totalBytes !== null}
-                  <FormatBytes bytes={device.usedBytes ?? 0} precision={0} /> / <FormatBytes
-                    bytes={device.totalBytes}
-                    precision={0}
-                  />
+                  <div class="flex min-w-28 flex-col gap-1">
+                    <div class="text-xs">
+                      <FormatBytes bytes={device.usedBytes ?? 0} precision={0} /> / <FormatBytes
+                        bytes={device.totalBytes}
+                        precision={0}
+                      />
+                    </div>
+                    {#if capacityPercent !== null}
+                      <div class="h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                        <div
+                          class="h-full rounded-full transition-all {getCapacityBarClass(capacityPercent)}"
+                          style="width: {capacityPercent}%"
+                        ></div>
+                      </div>
+                      <span class="text-xs text-gray-500">{capacityPercent}%</span>
+                    {/if}
+                  </div>
                 {:else}
-                  {$t('not_available')}
+                  <span class="text-gray-400">{$t('not_available')}</span>
                 {/if}
               </TableCell>
               <TableCell>
                 {#if device.healthPercent !== null}
-                  {device.healthPercent.toLocaleString($locale)}%
+                  <div class="flex flex-col gap-1">
+                    <span
+                      class={device.healthPercent >= 80
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : device.healthPercent >= 50
+                          ? 'text-amber-600 dark:text-amber-400'
+                          : 'text-red-600 dark:text-red-400'}
+                    >
+                      {device.healthPercent.toLocaleString($locale)}%
+                    </span>
+                  </div>
                 {:else}
-                  {$t('not_available')}
+                  <span class="text-gray-400">{$t('not_available')}</span>
                 {/if}
               </TableCell>
               <TableCell>
                 {#if trend}
-                  <svg viewBox="0 0 100 100" class="h-10 w-24 overflow-visible">
-                    <polyline fill="none" stroke="currentColor" stroke-width="4" points={trend}></polyline>
+                  <svg viewBox="0 0 100 100" class="h-8 w-20 overflow-visible text-immich-primary dark:text-immich-dark-primary">
+                    <polyline fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" points={trend}></polyline>
                   </svg>
                 {:else}
-                  <span class="text-xs text-gray-500">{$t('admin.disk_health_not_enough_history')}</span>
+                  <span class="text-xs text-gray-400 italic">{$t('admin.disk_health_not_enough_history')}</span>
                 {/if}
               </TableCell>
               <TableCell>
                 {#if device.issues.length > 0}
-                  <div class="max-w-80 text-xs text-gray-600 dark:text-gray-300">
-                    {device.issues.join(', ')}
+                  <div class="max-w-72 space-y-1">
+                    {#each device.issues as issue}
+                      <div class="rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">
+                        {issue}
+                      </div>
+                    {/each}
                   </div>
                 {:else}
-                  <span class="text-xs text-gray-500">{$t('none')}</span>
+                  <span class="text-xs text-gray-400">{$t('none')}</span>
                 {/if}
               </TableCell>
             </TableRow>

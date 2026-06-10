@@ -6,8 +6,8 @@
   import { featureFlagsManager } from '$lib/managers/feature-flags-manager.svelte';
   import { systemConfigManager } from '$lib/managers/system-config-manager.svelte';
   import { getDiskHealth, type DiskHealthResponseDto } from '@immich/sdk';
-  import { Button, IconButton, Text, toastManager } from '@immich/ui';
-  import { mdiPlus, mdiTrashCanOutline } from '@mdi/js';
+  import { Button, Icon, IconButton, Text, toastManager } from '@immich/ui';
+  import { mdiHarddisk, mdiInformationOutline, mdiPlus, mdiTrashCanOutline } from '@mdi/js';
   import { onMount } from 'svelte';
   import { t } from 'svelte-i18n';
   import { fade } from 'svelte/transition';
@@ -95,18 +95,21 @@
         <div
           class="rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-immich-dark-border dark:bg-immich-dark-gray/40"
         >
-          <Text fontWeight="medium">{$t('admin.disk_health_primary_disk')}</Text>
+          <div class="flex items-center gap-2 text-primary">
+            <Icon icon={mdiHarddisk} size="18" />
+            <Text fontWeight="medium">{$t('admin.disk_health_primary_disk')}</Text>
+          </div>
           {#if primaryDisk}
-            <div class="mt-2 text-sm text-gray-700 dark:text-gray-300">
-              <div><strong>{$t('admin.disk_health_primary_disk')}</strong></div>
-              <div>{primaryDisk.devicePath}</div>
+            <div class="mt-3 flex flex-col gap-1 text-sm">
+              <div class="font-mono text-gray-700 dark:text-gray-300">{primaryDisk.devicePath}</div>
               {#if primaryDisk.mountPath}
-                <div>{primaryDisk.mountPath}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">{primaryDisk.mountPath}</div>
               {/if}
             </div>
           {:else}
-            <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-              {$t('admin.disk_health_primary_disk_description')}
+            <div class="mt-2 flex items-start gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+              <Icon icon={mdiInformationOutline} size="15" class="mt-0.5 shrink-0" />
+              <span>{$t('admin.disk_health_primary_disk_description')}</span>
             </div>
           {/if}
         </div>
