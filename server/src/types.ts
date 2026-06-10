@@ -556,6 +556,7 @@ export type UserPreferences = {
     enabled: boolean;
     albumInvite: boolean;
     albumUpdate: boolean;
+    diskHealthAlert: boolean;
   };
   download: {
     archiveSize: number;

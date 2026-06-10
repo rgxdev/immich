@@ -71,6 +71,7 @@ const EmailNotificationsUpdateSchema = z
     enabled: z.boolean().optional().describe('Whether email notifications are enabled'),
     albumInvite: z.boolean().optional().describe('Whether to receive email notifications for album invites'),
     albumUpdate: z.boolean().optional().describe('Whether to receive email notifications for album updates'),
+    diskHealthAlert: z.boolean().optional().describe('Whether to receive email notifications for disk health status changes'),
   })
   .optional()
   .meta({ id: 'EmailNotificationsUpdate' });
@@ -168,6 +169,7 @@ const EmailNotificationsResponseSchema = z
     enabled: z.boolean().describe('Whether email notifications are enabled'),
     albumInvite: z.boolean().describe('Whether to receive email notifications for album invites'),
     albumUpdate: z.boolean().describe('Whether to receive email notifications for album updates'),
+    diskHealthAlert: z.boolean().describe('Whether to receive email notifications for disk health status changes'),
   })
   .meta({ id: 'EmailNotificationsResponse' });
 
