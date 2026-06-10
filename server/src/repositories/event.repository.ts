@@ -41,6 +41,9 @@ type EventMap = {
   AlbumUpdate: [{ id: string; recipientId: string }];
   AlbumInvite: [{ id: string; userId: string; senderName: string }];
 
+  // disk health events
+  DiskHealthAlert: [{ devices: Array<{ name: string; devicePath: string; status: string; previousStatus: string }> }];
+
   // asset events
   AssetCreate: [{ asset: Asset; file: UploadFile }];
   AssetTag: [{ assetId: string }];
