@@ -12,6 +12,7 @@ import { CronJob, ImmichWorker, StorageFolder } from 'src/enum';
 import { ConfigRepository } from 'src/repositories/config.repository';
 import { CronRepository } from 'src/repositories/cron.repository';
 import { DiskHealthRepository } from 'src/repositories/disk-health.repository';
+import { EventRepository } from 'src/repositories/event.repository';
 import { LoggingRepository } from 'src/repositories/logging.repository';
 import { ProcessRepository } from 'src/repositories/process.repository';
 import { StorageRepository } from 'src/repositories/storage.repository';
@@ -38,6 +39,7 @@ export class DiskHealthService {
     private logger: LoggingRepository,
     private configRepository: ConfigRepository,
     private cronRepository: CronRepository,
+    private eventRepository: EventRepository,
     private processRepository: ProcessRepository,
     private storageRepository: StorageRepository,
     private systemMetadataRepository: SystemMetadataRepository,
@@ -163,6 +165,20 @@ export class DiskHealthService {
     await this.diskHealthRepository.cleanup(
       DateTime.now().minus({ days: config.diskMonitoring.retentionDays }).toJSDate(),
     );
+
+    if (this.lastResult) {
+      const changedDevices = result.flatMap((device) => {
+        const previous = this.lastResult!.devices.find((d) => d.devicePath === device.devicePath);
+        if (previous && previous.status !== device.status) {
+          return [{ name: device.name, devicePath: device.devicePath, status: device.status, previousStatus: previous.status }];
+        }
+        return [];
+      });
+
+      if (changedDevices.length > 0) {
+        await this.eventRepository.emit('DiskHealthAlert', { devices: changedDevices });
+      }
+    }
 
     this.lastResult = {
       checkedAt,
