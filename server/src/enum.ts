@@ -1079,6 +1079,7 @@ export enum NotificationType {
   SystemMessage = 'SystemMessage',
   AlbumInvite = 'AlbumInvite',
   AlbumUpdate = 'AlbumUpdate',
+  DiskHealthAlert = 'DiskHealthAlert',
   Custom = 'Custom',
 }
 
