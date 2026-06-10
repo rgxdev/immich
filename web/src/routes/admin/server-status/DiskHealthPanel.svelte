@@ -171,10 +171,10 @@
             {@const capacityPercent = getCapacityPercent(device.usedBytes ?? null, device.totalBytes)}
             <TableRow>
               <TableCell>
-                <div class="flex w-40 flex-col gap-0.5">
+                <div class="flex min-w-32 flex-col gap-0.5">
                   <div class="flex items-center gap-1.5">
                     <Icon icon={mdiHarddisk} size="14" class="shrink-0 text-gray-400" />
-                    <span class="whitespace-nowrap font-medium"
+                    <span class="font-medium"
                       >{device.isPrimary ? $t('admin.disk_health_primary_disk') : device.name}</span
                     >
                   </div>
@@ -253,14 +253,14 @@
                     <polyline fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" points={trend}></polyline>
                   </svg>
                 {:else}
-                  <span class="whitespace-nowrap text-xs italic text-gray-400">{$t('admin.disk_health_not_enough_history')}</span>
+                  <span class="text-xs italic text-gray-400">{$t('admin.disk_health_not_enough_history')}</span>
                 {/if}
               </TableCell>
               <TableCell>
                 {#if device.issues.length > 0}
-                  <div class="w-48 space-y-1">
+                  <div class="min-w-36 space-y-1">
                     {#each device.issues as issue}
-                      <div class="break-words rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">
+                      <div class="break-all rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700 dark:bg-red-950/40 dark:text-red-300">
                         {translateIssue(issue)}
                       </div>
                     {/each}
